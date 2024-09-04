@@ -4,10 +4,11 @@
 #include "MollyServo.h"
 
 #define TX_ENABLE 2
-#define ID 2
+
 #define TX 18
 
-MollyServo MServo(ID, TX, &Serial1, TX_ENABLE);
+MollyServo MServo(2, TX, &Serial1, TX_ENABLE);
+MollyServo NServo(3, TX, &Serial1, TX_ENABLE);
 
 void setup() {
     pinMode(TX_ENABLE, OUTPUT);
@@ -44,15 +45,18 @@ void loop() {
     // sendServoBroadcastIDCommand();
     // delay(100);
 
-    MServo.setID(2);
+    // MServo.setID(3);
     MServo.readPosition();
-    Serial.print("Position: " + String(MServo.pos));
+    Serial.println("ID 2 Position: " + String(MServo.pos));
+
+    NServo.readPosition();
+    Serial.println("ID 3 Position: " + String(NServo.pos));
 
     // READ ID COMMAND
     // readIDCommand();
     delay(100);
 
-    // readSerial2();
+    readSerial2();
     // MServo.readAvailable();
 
     // Check position!
