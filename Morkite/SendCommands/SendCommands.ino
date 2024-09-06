@@ -8,6 +8,7 @@
 #define TX 18
 
 MorkiteServo MServo(2, TX, &Serial1, TX_ENABLE);
+
 MorkiteServo NServo(3, TX, &Serial1, TX_ENABLE);
 
 void setup() {
@@ -41,9 +42,10 @@ void readSerial2() {
 }
 
 void loop() {
-    // Set ID COMMAND
-    // sendServoBroadcastIDCommand();
-    // delay(100);
+    // Read ID COMMAND
+    byte ID = MServo.readID();
+
+    Serial.println("ID: " + String(ID));
 
     // MServo.setID(3);
     MServo.readPosition();
@@ -52,18 +54,10 @@ void loop() {
     NServo.readPosition();
     Serial.println("ID 3 Position: " + String(NServo.pos));
 
-    // READ ID COMMAND
-    // readIDCommand();
-    delay(100);
-
+    // Eavesdrop on the serial port from Serial 2
     readSerial2();
-    // MServo.readAvailable();
 
-    // Check position!
-    // readPosCommand();
-
-    // // check for a response until we get one
-    // checkForResponseManyTimes();
-
+    // Delay
+    delay(1000);
     Serial.println();
 }

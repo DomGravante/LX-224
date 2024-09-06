@@ -1,6 +1,16 @@
 #include "MorkiteServo.h"
 
-int _baud = 115200;
+uint32_t _baud = 115200;
+unsigned int _74HC126_DELAY_US = 1;  // 1us  // actualy something like 315ns
+
+// time returns the number of ms to TX/RX n characters
+uint32_t time(uint32_t n) {
+    return n * 10 * 1000 / _baud;  // 10 bits per char
+}
+
+uint32_t timeus(uint32_t n) {
+    return n * 10 * 1000000 / _baud;  // 10 bits per char
+}
 
 MorkiteServo::MorkiteServo(int id, int TX, HardwareSerial* serial,
                            int TX_ENABLE) {
@@ -19,13 +29,24 @@ void MorkiteServo::setID(byte newID) {
 
     // set the ID to the new ID
     this->ID = newID;
+
+    // return void
+    return;
 }
 
-byte MorkiteServo::readID() {
+int MorkiteServo::readID() {
     byte payload[0];
-    byte* response = sendCommand(LX16A_SERVO_ID_READ, payload, 0);
+    sendCommand(LX16A_SERVO_ID_READ, payload, 0);
 
-    return response[5];
+    byte responseBuffer[1];
+
+    readResponse(LX16A_SERVO_POS_READ, 1, responseBuffer);
+
+    // response is set to the responseBuffer. set to this ID
+    this->ID = responseBuffer[0];
+
+    // return the ID
+    return this->ID;
 }
 
 byte* MorkiteServo::sendCommand(byte command, byte* payload,
@@ -79,13 +100,17 @@ byte MorkiteServo::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
 void MorkiteServo::sendData(byte data[], int length) {
     HardwareSerial* serial = this->serial;
 
+    // Enable the RX/TX buffer
     digitalWrite(TX_ENABLE, HIGH);
-    delay(700);
+
+    delayMicroseconds(_74HC126_DELAY_US);
     for (int i = 0; i < length; i++) {
         serial->write(data[i]);
+        delayMicroseconds(timeus(1));
     }
-    delay(100);
+    // Re-enable the RX/TX buffer
     digitalWrite(TX_ENABLE, LOW);
+    delayMicroseconds(_74HC126_DELAY_US);
 
     // clear the command from the buffer
     clearCommandFromBuffer(data, length);
@@ -146,11 +171,12 @@ byte* MorkiteServo::readResponse(byte cmd, byte expectedPayloadLength,
     int i_payload = 0;
     int index_checksum = 6 + expectedPayloadLength - 1;  //-
     // 1;  // 6 bytes for header(x2), ID, data length, command, checksum
-    if (this->debug) Serial.print("Reading Response: ");
+    if (this->debug) Serial.println("Reading Response: ");
 
     while (serial->available() > 0) {
         byte receivedByte = serial->read();
         if (this->debug) Serial.print(receivedByte, HEX);
+        delayMicroseconds(timeus(1));
 
         // naive approach: ignore bytes other than payload
         if (i < 5) {
@@ -180,9 +206,12 @@ bool MorkiteServo::waitForDataAvailable() {
     // maximum times to loop
     int maxLoops = 100;  // 100x * 10ms = 1s
 
+    delayMicroseconds(timeus(2));
+
     // wait for data to be available
     while (serial->available() == 0) {
         delay(10);
+        Serial.print(".");
         maxLoops--;
         // return false if we've waited too long
         if (maxLoops == 0) {

@@ -1,4 +1,3 @@
-
 #ifndef MorkiteServo_H
 #define MorkiteServo_H
 
@@ -62,7 +61,7 @@ class MorkiteServo {
      */
     void setID(byte newID);
 
-    byte readID();
+    int readID();
 
     byte* readAvailable();
 
@@ -91,6 +90,11 @@ class MorkiteServo {
                        byte* responseBuffer);
 
     bool waitForDataAvailable();
+
+    // uint32_t time(uint32_t n);
+    // uint32_t timeus(uint32_t n);
+
+    // void flipTX(bool doEnable);
 };
 
 #endif
