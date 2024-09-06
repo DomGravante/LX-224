@@ -1,15 +1,16 @@
-#include "MollyServo.h"
+#include "MorkiteServo.h"
 
 int _baud = 115200;
 
-MollyServo::MollyServo(int id, int TX, HardwareSerial* serial, int TX_ENABLE) {
+MorkiteServo::MorkiteServo(int id, int TX, HardwareSerial* serial,
+                           int TX_ENABLE) {
     this->ID = id;
     this->TX = TX;
     this->serial = serial;
     this->TX_ENABLE = TX_ENABLE;
 }
 
-void MollyServo::setID(byte newID) {
+void MorkiteServo::setID(byte newID) {
     // set the ID to this servo to the broadcast ID
     this->ID = LX16A_BROADCAST_ID;
 
@@ -20,14 +21,15 @@ void MollyServo::setID(byte newID) {
     this->ID = newID;
 }
 
-byte MollyServo::readID() {
+byte MorkiteServo::readID() {
     byte payload[0];
     byte* response = sendCommand(LX16A_SERVO_ID_READ, payload, 0);
 
     return response[5];
 }
 
-byte* MollyServo::sendCommand(byte command, byte* payload, byte payloadLength) {
+byte* MorkiteServo::sendCommand(byte command, byte* payload,
+                                byte payloadLength) {
     byte data[6 + payloadLength];
 
     // Header
@@ -57,7 +59,7 @@ byte* MollyServo::sendCommand(byte command, byte* payload, byte payloadLength) {
     return data;
 }
 
-byte MollyServo::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
+byte MorkiteServo::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
     // datalen is the length of the payload, plus 3 (ID, DataLen, Cmd)
     byte id = this->ID;
 
@@ -74,7 +76,7 @@ byte MollyServo::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
     return ~checksum;
 }
 
-void MollyServo::sendData(byte data[], int length) {
+void MorkiteServo::sendData(byte data[], int length) {
     HardwareSerial* serial = this->serial;
 
     digitalWrite(TX_ENABLE, HIGH);
@@ -89,7 +91,7 @@ void MollyServo::sendData(byte data[], int length) {
     clearCommandFromBuffer(data, length);
 }
 
-byte* MollyServo::readAvailable() {
+byte* MorkiteServo::readAvailable() {
     HardwareSerial* serial = this->serial;
 
     byte response[10];
@@ -109,7 +111,7 @@ byte* MollyServo::readAvailable() {
     return response;
 }
 
-int MollyServo::readPosition() {
+int MorkiteServo::readPosition() {
     byte payload[0];
     sendCommand(LX16A_SERVO_POS_READ, payload, 0);
 
@@ -128,8 +130,8 @@ int MollyServo::readPosition() {
     return this->pos;
 }
 
-byte* MollyServo::readResponse(byte cmd, byte expectedPayloadLength,
-                               byte* responseBuffer) {
+byte* MorkiteServo::readResponse(byte cmd, byte expectedPayloadLength,
+                                 byte* responseBuffer) {
     HardwareSerial* serial = this->serial;
 
     // maximum times to loop
@@ -172,7 +174,7 @@ byte* MollyServo::readResponse(byte cmd, byte expectedPayloadLength,
     }
 }
 
-bool MollyServo::waitForDataAvailable() {
+bool MorkiteServo::waitForDataAvailable() {
     HardwareSerial* serial = this->serial;
 
     // maximum times to loop
@@ -191,7 +193,7 @@ bool MollyServo::waitForDataAvailable() {
     return true;
 }
 
-void MollyServo::clearCommandFromBuffer(byte* array, int length) {
+void MorkiteServo::clearCommandFromBuffer(byte* array, int length) {
     HardwareSerial* serial = this->serial;
 
     bool isDataAvailable = waitForDataAvailable();

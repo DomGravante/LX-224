@@ -1,6 +1,6 @@
 
-#ifndef MOLLYSERVO_H
-#define MOLLYSERVO_H
+#ifndef MorkiteServo_H
+#define MorkiteServo_H
 
 #include <Arduino.h>
 
@@ -34,7 +34,7 @@
 #define LX16A_SERVO_LED_ERROR_WRITE 35
 #define LX16A_SERVO_LED_ERROR_READ 36
 
-class MollyServo {
+class MorkiteServo {
    public:
     int ID;                  // ID of the servo, 1-253
     int TX;                  // TX pin
@@ -51,9 +51,9 @@ class MollyServo {
      * @param TX The TX pin (int).
      * @param serial The RX pin (int).
      * @param TX_ENABLE The TX enable pin (int).
-     * @return A new MollyServo object.
+     * @return A new MorkiteServo object.
      */
-    MollyServo(int id, int TX, HardwareSerial* serial, int TX_ENABLE);
+    MorkiteServo(int id, int TX, HardwareSerial* serial, int TX_ENABLE);
 
     /**
      * Sets the ID of the servo.
