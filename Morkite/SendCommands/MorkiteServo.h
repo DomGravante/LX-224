@@ -41,6 +41,10 @@ class MorkiteServo {
     int TX_ENABLE;           // TX enable pin
 
     byte position[2];  // Position of the servo
+
+    // Position of the servo, 0-1000
+    // Mapped to 0-270 degrees of rotation. so 0 is 0 degrees, 500 is 135, 1000
+    //   is 270 degrees
     int pos;
 
     bool debug = false;
@@ -66,6 +70,10 @@ class MorkiteServo {
     byte* readAvailable();
 
     int readPosition();
+
+    void move(int position, int time);
+
+    void setDebug(bool debug);
 
    private:
     byte* sendCommand(byte command, byte* payload, byte payloadLength);
@@ -95,6 +103,11 @@ class MorkiteServo {
     // uint32_t timeus(uint32_t n);
 
     // void flipTX(bool doEnable);
+
+    void debugPrint(String message);
+    void debugPrintHex(byte* data, int length, String message);
+
+    void printByteString(byte* data, int length);
 };
 
 #endif

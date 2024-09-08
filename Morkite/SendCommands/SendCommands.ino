@@ -21,6 +21,8 @@ void setup() {
 
     // Set up Buffer
     digitalWrite(TX_ENABLE, HIGH);  // Start TX_ENABLE as HIGH
+
+    // MServo.setDebug(true);
 }
 
 void readSerial2() {
@@ -42,22 +44,111 @@ void readSerial2() {
 }
 
 void loop() {
+    // // read position
+    MServo.move(0, 1000);
+    delay(550);
+    NServo.move(0, 1000);
+    delay(550);
+    // MServo.readPosition();
+    // Serial.println("ID 2 Position: " + String(MServo.pos));
+
+    MServo.move(1000, 1000);
+    delay(550);
+    NServo.move(1000, 1000);
+    delay(550);
+
+    // MServo.readPosition();
+    // Serial.println("ID 2 Position: " + String(MServo.pos));
+
+    // readSerial2();
+
     // Read ID COMMAND
-    byte ID = MServo.readID();
+    // Serial.print("Startign");
+    // MServo.move(0, 1000);
+    // delay(1000);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 000: " + String(MServo.pos));
 
-    Serial.println("ID: " + String(ID));
+    // MServo.move(100, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 100: " + String(MServo.pos));
 
-    // MServo.setID(3);
-    MServo.readPosition();
-    Serial.println("ID 2 Position: " + String(MServo.pos));
+    // MServo.move(200, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 200: " + String(MServo.pos));
 
-    NServo.readPosition();
-    Serial.println("ID 3 Position: " + String(NServo.pos));
+    // MServo.move(300, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 300: " + String(MServo.pos));
+
+    // MServo.move(400, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 400: " + String(MServo.pos));
+
+    // MServo.move(500, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 500: " + String(MServo.pos));
+
+    // MServo.move(600, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 600: " + String(MServo.pos));
+
+    // MServo.move(700, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 700: " + String(MServo.pos));
+
+    // MServo.move(800, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 800: " + String(MServo.pos));
+
+    // MServo.move(900, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 900: " + String(MServo.pos));
+
+    // MServo.move(1000, 100);
+    // delay(500);
+    // // MServo.readPosition();
+    // // delay(1500);
+    // Serial.println("ID 2 Position: 1000: " + String(MServo.pos));
+
+    // byte ID = MServo.readID();
+
+    // Serial.println("ID: " + String(ID));
+
+    // // MServo.setID(3);
+    // MServo.readPosition();
+    // Serial.println("ID 2 Position: " + String(MServo.pos));
+
+    // NServo.readPosition();
+    // Serial.println("ID 3 Position: " + String(NServo.pos));
+
+    // MServo.move(0, 1000);
+    // delay(1000);
+    // MServo.move(2000, 1000);
 
     // Eavesdrop on the serial port from Serial 2
-    readSerial2();
+    // readSerial2();
 
-    // Delay
-    delay(1000);
-    Serial.println();
+    // // Delay
+    // delay(5000);
+    // Serial.println();
 }

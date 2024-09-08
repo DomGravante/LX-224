@@ -1,4 +1,6 @@
 // Servo with ID 2, what's your position? 
+
+
 55 55 02 03 1C DE 
 
 // My ID is 2, my position is 01F0
@@ -11,28 +13,44 @@
 55 55 03 05 1C F6 01 E4
 
 
-// 2024-09-05
+// move to position 0? 
+55 55 02 07 01 00 00 E8 03 0A 
 
-// Q ID2: What is your ID? 
-55 55 02 03 0E EC 
-// A ID2: My ID is 02
-55 55 02 04 0E 02 E9 
+// move to position 1000? 
+55 55 02 07 01 E8 03 E8 03 1F 
 
-// Q ID2: What is your position
+// Report Position
 55 55 02 03 1C DE 
-// A ID2: My position is 01F0
-55 55 02 05 1C F0 01 EB 
-
-// Q ID3: What is your position
-55 55 03 03 1C DD 
-// A ID3: My position is 01F6
-55 55 03 05 1C F6 01 E4
+// Position is 03E9
+55 55 02 05 1C E9 03 F0
 
 
 
-55 55 02 03 0E EC
-55 55 02 04 0E 02 E9 
+// MOV 00 00
+55 55 02 07 01 00 00 E8 03 0A 
 
-55 55 21 03 1C BF 
-55 55 03 03 1C DD 
-55 55 03 05 1C F6 01 E4 RX2 Data
+// Q POS?
+55 55 02 03 1C DE 
+// A POS = 00 00
+55 55 02 05 1C 00 00 DC 
+
+// MOV 03 E8
+55 55 02 07 01 E8 03 E8 03 1F 
+
+// Q POS?
+55 55 02 03 1C DE 
+// A POS = 03 EA
+55 55 02 05 1C EA 03 EF
+
+
+
+
+
+55 55 02 05 1C FE FF DF 
+
+<MOV 03 E8>
+55 55 02 07 01 DC 05 E8 03 29 
+<POS ?>
+55 55 02 03 1C DE 
+<POS: 03 EB>
+55 55 02 05 1C EB 03 EE 

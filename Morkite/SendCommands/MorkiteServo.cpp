@@ -20,6 +20,20 @@ MorkiteServo::MorkiteServo(int id, int TX, HardwareSerial* serial,
     this->TX_ENABLE = TX_ENABLE;
 }
 
+String hexBytesToString(byte* data, int length) {
+    String result = "";
+    for (int i = 0; i < length; i++) {
+        if (data[i] < 0x10)
+            result += "0";  // For leading zero in single-digit hex values
+
+        result += String(data[i], HEX);
+        result += " ";
+    }
+    result.toUpperCase();  // Convert the result to uppercase
+
+    return result;
+}
+
 void MorkiteServo::setID(byte newID) {
     // set the ID to this servo to the broadcast ID
     this->ID = LX16A_BROADCAST_ID;
@@ -76,6 +90,8 @@ byte* MorkiteServo::sendCommand(byte command, byte* payload,
         calculateChecksum(command, payload, payloadLength);
 
     sendData(data, 6 + payloadLength);
+
+    this->debugPrintHex(data, 6 + payloadLength, "Sent Command");
 
     return data;
 }
@@ -148,9 +164,7 @@ int MorkiteServo::readPosition() {
     signed short int reported_pos =
         responseBuffer[0] + (responseBuffer[1] << 8);
 
-    // convert to centdegrees
-
-    this->pos = reported_pos * 24;
+    this->pos = reported_pos;  // * 24;
 
     return this->pos;
 }
@@ -251,3 +265,42 @@ void MorkiteServo::clearCommandFromBuffer(byte* array, int length) {
         }
     }
 }
+
+void MorkiteServo::move(int position, int time) {
+    byte payload[3];
+
+    // position
+    payload[0] = position & 0xff;
+    payload[1] = (position >> 8) & 0xff;
+
+    debugPrintHex(payload, 2, "Move Payload to position " + String(position));
+
+    // time
+    payload[2] = time & 0xff;
+    payload[3] = (time >> 8) & 0xff;
+
+    sendCommand(LX16A_SERVO_MOVE_TIME_WRITE, payload, 4);
+}
+
+void MorkiteServo::debugPrint(String message) {
+    if (this->debug) Serial.println(message);
+}
+
+void MorkiteServo::debugPrintHex(byte* data, int length, String message) {
+    if (!this->debug) return;
+
+    Serial.println(message + ": " + hexBytesToString(data, length));
+}
+
+void MorkiteServo::printByteString(byte* data, int length) {
+    for (int i = 0; i < length; i++) {
+        if (data[i] < 0x10)
+            Serial.print("0");  // For leading zero in single-digit hex values
+
+        Serial.print(data[i], HEX);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+
+void MorkiteServo::setDebug(bool debug) { this->debug = debug; }
