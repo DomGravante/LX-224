@@ -1,4 +1,4 @@
-#include "MorkiteServo.h"
+#include "SRVE.h"
 
 uint32_t _baud = 115200;
 unsigned int _74HC126_DELAY_US = 1;  // 1us  // actualy something like 315ns
@@ -12,8 +12,7 @@ uint32_t timeus(uint32_t n) {
     return n * 10 * 1000000 / _baud;  // 10 bits per char
 }
 
-MorkiteServo::MorkiteServo(int id, int TX, HardwareSerial* serial,
-                           int TX_ENABLE) {
+SRVE::SRVE(int id, int TX, HardwareSerial* serial, int TX_ENABLE) {
     this->ID = id;
     this->TX = TX;
     this->serial = serial;
@@ -34,7 +33,7 @@ String hexBytesToString(byte* data, int length) {
     return result;
 }
 
-void MorkiteServo::setID(byte newID) {
+void SRVE::setID(byte newID) {
     // set the ID to this servo to the broadcast ID
     this->ID = LX16A_BROADCAST_ID;
 
@@ -48,7 +47,7 @@ void MorkiteServo::setID(byte newID) {
     return;
 }
 
-int MorkiteServo::readID() {
+int SRVE::readID() {
     byte payload[0];
     sendCommand(LX16A_SERVO_ID_READ, payload, 0);
 
@@ -63,8 +62,7 @@ int MorkiteServo::readID() {
     return this->ID;
 }
 
-byte* MorkiteServo::sendCommand(byte command, byte* payload,
-                                byte payloadLength) {
+byte* SRVE::sendCommand(byte command, byte* payload, byte payloadLength) {
     byte data[6 + payloadLength];
 
     // Header
@@ -96,7 +94,7 @@ byte* MorkiteServo::sendCommand(byte command, byte* payload,
     return data;
 }
 
-byte MorkiteServo::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
+byte SRVE::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
     // datalen is the length of the payload, plus 3 (ID, DataLen, Cmd)
     byte id = this->ID;
 
@@ -113,7 +111,7 @@ byte MorkiteServo::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
     return ~checksum;
 }
 
-void MorkiteServo::sendData(byte data[], int length) {
+void SRVE::sendData(byte data[], int length) {
     HardwareSerial* serial = this->serial;
 
     // Enable the RX/TX buffer
@@ -132,7 +130,7 @@ void MorkiteServo::sendData(byte data[], int length) {
     clearCommandFromBuffer(data, length);
 }
 
-byte* MorkiteServo::readAvailable() {
+byte* SRVE::readAvailable() {
     HardwareSerial* serial = this->serial;
 
     byte response[10];
@@ -152,7 +150,7 @@ byte* MorkiteServo::readAvailable() {
     return response;
 }
 
-int MorkiteServo::readPosition() {
+int SRVE::readPosition() {
     byte payload[0];
     sendCommand(LX16A_SERVO_POS_READ, payload, 0);
 
@@ -169,8 +167,8 @@ int MorkiteServo::readPosition() {
     return this->pos;
 }
 
-byte* MorkiteServo::readResponse(byte cmd, byte expectedPayloadLength,
-                                 byte* responseBuffer) {
+byte* SRVE::readResponse(byte cmd, byte expectedPayloadLength,
+                         byte* responseBuffer) {
     HardwareSerial* serial = this->serial;
 
     // maximum times to loop
@@ -214,7 +212,7 @@ byte* MorkiteServo::readResponse(byte cmd, byte expectedPayloadLength,
     }
 }
 
-bool MorkiteServo::waitForDataAvailable() {
+bool SRVE::waitForDataAvailable() {
     HardwareSerial* serial = this->serial;
 
     // maximum times to loop
@@ -236,7 +234,7 @@ bool MorkiteServo::waitForDataAvailable() {
     return true;
 }
 
-void MorkiteServo::clearCommandFromBuffer(byte* array, int length) {
+void SRVE::clearCommandFromBuffer(byte* array, int length) {
     HardwareSerial* serial = this->serial;
 
     bool isDataAvailable = waitForDataAvailable();
@@ -266,7 +264,7 @@ void MorkiteServo::clearCommandFromBuffer(byte* array, int length) {
     }
 }
 
-void MorkiteServo::move(int position, int time) {
+void SRVE::move(int position, int time) {
     byte payload[3];
 
     // position
@@ -282,17 +280,17 @@ void MorkiteServo::move(int position, int time) {
     sendCommand(LX16A_SERVO_MOVE_TIME_WRITE, payload, 4);
 }
 
-void MorkiteServo::debugPrint(String message) {
+void SRVE::debugPrint(String message) {
     if (this->debug) Serial.println(message);
 }
 
-void MorkiteServo::debugPrintHex(byte* data, int length, String message) {
+void SRVE::debugPrintHex(byte* data, int length, String message) {
     if (!this->debug) return;
 
     Serial.println(message + ": " + hexBytesToString(data, length));
 }
 
-void MorkiteServo::printByteString(byte* data, int length) {
+void SRVE::printByteString(byte* data, int length) {
     for (int i = 0; i < length; i++) {
         if (data[i] < 0x10)
             Serial.print("0");  // For leading zero in single-digit hex values
@@ -303,4 +301,4 @@ void MorkiteServo::printByteString(byte* data, int length) {
     Serial.println();
 }
 
-void MorkiteServo::setDebug(bool debug) { this->debug = debug; }
+void SRVE::setDebug(bool debug) { this->debug = debug; }

@@ -1,15 +1,15 @@
 #include <Arduino.h>
 #include <lx16a-servo.h>
 
-#include "MorkiteServo.h"
+#include "SRVE.h"
 
 #define TX_ENABLE 2
 
 #define TX 18
 
-MorkiteServo MServo(2, TX, &Serial1, TX_ENABLE);
+SRVE MServo(2, TX, &Serial1, TX_ENABLE);
 
-MorkiteServo NServo(3, TX, &Serial1, TX_ENABLE);
+SRVE NServo(3, TX, &Serial1, TX_ENABLE);
 
 void setup() {
     pinMode(TX_ENABLE, OUTPUT);
