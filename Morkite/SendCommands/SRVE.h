@@ -37,41 +37,31 @@ class SRVE {
    public:
     int ID;                  // ID of the servo, 1-253
     int TX;                  // TX pin
-    HardwareSerial* serial;  // serial
+    HardwareSerial* serial;  // serial used for communication
     int TX_ENABLE;           // TX enable pin
 
-    byte position[2];  // Position of the servo
-
-    // Position of the servo, 0-1000
-    // Mapped to 0-270 degrees of rotation. so 0 is 0 degrees, 500 is 135, 1000
-    //   is 270 degrees
+    // Position of the servo, 0-1000, mapped to 0-270 degrees of rotation
     int pos;
 
     bool debug = false;
 
-    /** Constructor
-     * @param id The ID of the servo.
-     * @param TX The TX pin (int).
-     * @param serial The RX pin (int).
-     * @param TX_ENABLE The TX enable pin (int).
-     * @return A new SRVE object.
-     */
+    // DELAYS
+    unsigned int _74HC126_DELAY_US = 1;  // 1us  // actualy something like 315ns
+    uint32_t _baud = 115200;
+
+    uint32_t timems(uint32_t n);
+    uint32_t timeus(uint32_t n);
+
     SRVE(int id, int TX, HardwareSerial* serial, int TX_ENABLE);
 
-    /**
-     * Sets the ID of the servo.
-     *
-     * @param newID The new ID to set.
-     */
     void setID(byte newID);
-
     int readID();
 
     byte* readAvailable();
 
     int readPosition();
-
     void move(int position, int time);
+    void moveBlocking(int position, int time, boolean doReadPosition);
 
     void setDebug(bool debug);
 
@@ -98,11 +88,6 @@ class SRVE {
                        byte* responseBuffer);
 
     bool waitForDataAvailable();
-
-    // uint32_t time(uint32_t n);
-    // uint32_t timeus(uint32_t n);
-
-    // void flipTX(bool doEnable);
 
     void debugPrint(String message);
     void debugPrintHex(byte* data, int length, String message);

@@ -1,36 +1,26 @@
 #include "SRVE.h"
 
-uint32_t _baud = 115200;
-unsigned int _74HC126_DELAY_US = 1;  // 1us  // actualy something like 315ns
-
 // time returns the number of ms to TX/RX n characters
-uint32_t time(uint32_t n) {
-    return n * 10 * 1000 / _baud;  // 10 bits per char
+uint32_t SRVE::timems(uint32_t n) {
+    return n * 10 * 1000 / this->_baud;  // 10 bits per char
 }
 
-uint32_t timeus(uint32_t n) {
-    return n * 10 * 1000000 / _baud;  // 10 bits per char
+uint32_t SRVE::timeus(uint32_t n) {
+    return n * 10 * 1000000 / this->_baud;  // 10 bits per char
 }
 
+/** Constructor
+ * @param id The ID of the servo.
+ * @param TX The TX pin (int).
+ * @param serial The RX pin (int).
+ * @param TX_ENABLE The TX enable pin (int).
+ * @return A new SRVE object.
+ */
 SRVE::SRVE(int id, int TX, HardwareSerial* serial, int TX_ENABLE) {
     this->ID = id;
     this->TX = TX;
     this->serial = serial;
     this->TX_ENABLE = TX_ENABLE;
-}
-
-String hexBytesToString(byte* data, int length) {
-    String result = "";
-    for (int i = 0; i < length; i++) {
-        if (data[i] < 0x10)
-            result += "0";  // For leading zero in single-digit hex values
-
-        result += String(data[i], HEX);
-        result += " ";
-    }
-    result.toUpperCase();  // Convert the result to uppercase
-
-    return result;
 }
 
 void SRVE::setID(byte newID) {
@@ -62,74 +52,6 @@ int SRVE::readID() {
     return this->ID;
 }
 
-byte* SRVE::sendCommand(byte command, byte* payload, byte payloadLength) {
-    byte data[6 + payloadLength];
-
-    // Header
-    data[0] = 0x55;
-    data[1] = 0x55;
-
-    // ID
-    data[2] = ID;
-
-    // Data length
-    data[3] = 3 + payloadLength;
-
-    // Command
-    data[4] = command;
-
-    // payload
-    for (int i = 0; i < payloadLength; i++) {
-        data[5 + i] = payload[i];
-    }
-
-    // checksum
-    data[5 + payloadLength] =
-        calculateChecksum(command, payload, payloadLength);
-
-    sendData(data, 6 + payloadLength);
-
-    this->debugPrintHex(data, 6 + payloadLength, "Sent Command");
-
-    return data;
-}
-
-byte SRVE::calculateChecksum(byte cmd, byte* payload, byte payloadLen) {
-    // datalen is the length of the payload, plus 3 (ID, DataLen, Cmd)
-    byte id = this->ID;
-
-    byte dataLen = 3 + payloadLen;
-
-    // add ID, length, and cmd to checksum
-    byte checksum = id + dataLen + cmd;
-
-    // add payload to checksum
-    for (int i = 0; i < payloadLen; i++) {
-        checksum += payload[i];
-    }
-    // return the negation of the checksum
-    return ~checksum;
-}
-
-void SRVE::sendData(byte data[], int length) {
-    HardwareSerial* serial = this->serial;
-
-    // Enable the RX/TX buffer
-    digitalWrite(TX_ENABLE, HIGH);
-
-    delayMicroseconds(_74HC126_DELAY_US);
-    for (int i = 0; i < length; i++) {
-        serial->write(data[i]);
-        delayMicroseconds(timeus(1));
-    }
-    // Re-enable the RX/TX buffer
-    digitalWrite(TX_ENABLE, LOW);
-    delayMicroseconds(_74HC126_DELAY_US);
-
-    // clear the command from the buffer
-    clearCommandFromBuffer(data, length);
-}
-
 byte* SRVE::readAvailable() {
     HardwareSerial* serial = this->serial;
 
@@ -148,90 +70,6 @@ byte* SRVE::readAvailable() {
     }
 
     return response;
-}
-
-int SRVE::readPosition() {
-    byte payload[0];
-    sendCommand(LX16A_SERVO_POS_READ, payload, 0);
-
-    byte responseBuffer[2];
-
-    readResponse(LX16A_SERVO_POS_READ, 2, responseBuffer);
-
-    // convert response to a signed short int
-    signed short int reported_pos =
-        responseBuffer[0] + (responseBuffer[1] << 8);
-
-    this->pos = reported_pos;  // * 24;
-
-    return this->pos;
-}
-
-byte* SRVE::readResponse(byte cmd, byte expectedPayloadLength,
-                         byte* responseBuffer) {
-    HardwareSerial* serial = this->serial;
-
-    // maximum times to loop
-    bool isDataAvailable = waitForDataAvailable();
-
-    if (!isDataAvailable) return;
-
-    // byte response[expectedPayloadLength];
-
-    // read the data
-    int i = 0;
-    int i_payload = 0;
-    int index_checksum = 6 + expectedPayloadLength - 1;  //-
-    // 1;  // 6 bytes for header(x2), ID, data length, command, checksum
-    if (this->debug) Serial.println("Reading Response: ");
-
-    while (serial->available() > 0) {
-        byte receivedByte = serial->read();
-        if (this->debug) Serial.print(receivedByte, HEX);
-        delayMicroseconds(timeus(1));
-
-        // naive approach: ignore bytes other than payload
-        if (i < 5) {
-            i++;
-            if (this->debug) Serial.print("I ");
-            continue;
-        }
-
-        // either payload or checksum
-        if (i == index_checksum) {
-            if (this->debug) Serial.print("C ");
-            if (this->debug) Serial.println();
-            return responseBuffer;
-        }
-
-        // payload
-        responseBuffer[i_payload] = receivedByte;
-        i++;
-        i_payload++;
-        if (this->debug) Serial.print("P ");
-    }
-}
-
-bool SRVE::waitForDataAvailable() {
-    HardwareSerial* serial = this->serial;
-
-    // maximum times to loop
-    int maxLoops = 100;  // 100x * 10ms = 1s
-
-    delayMicroseconds(timeus(2));
-
-    // wait for data to be available
-    while (serial->available() == 0) {
-        delay(10);
-        Serial.print(".");
-        maxLoops--;
-        // return false if we've waited too long
-        if (maxLoops == 0) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 void SRVE::clearCommandFromBuffer(byte* array, int length) {
@@ -263,42 +101,3 @@ void SRVE::clearCommandFromBuffer(byte* array, int length) {
         }
     }
 }
-
-void SRVE::move(int position, int time) {
-    byte payload[3];
-
-    // position
-    payload[0] = position & 0xff;
-    payload[1] = (position >> 8) & 0xff;
-
-    debugPrintHex(payload, 2, "Move Payload to position " + String(position));
-
-    // time
-    payload[2] = time & 0xff;
-    payload[3] = (time >> 8) & 0xff;
-
-    sendCommand(LX16A_SERVO_MOVE_TIME_WRITE, payload, 4);
-}
-
-void SRVE::debugPrint(String message) {
-    if (this->debug) Serial.println(message);
-}
-
-void SRVE::debugPrintHex(byte* data, int length, String message) {
-    if (!this->debug) return;
-
-    Serial.println(message + ": " + hexBytesToString(data, length));
-}
-
-void SRVE::printByteString(byte* data, int length) {
-    for (int i = 0; i < length; i++) {
-        if (data[i] < 0x10)
-            Serial.print("0");  // For leading zero in single-digit hex values
-
-        Serial.print(data[i], HEX);
-        Serial.print(" ");
-    }
-    Serial.println();
-}
-
-void SRVE::setDebug(bool debug) { this->debug = debug; }
